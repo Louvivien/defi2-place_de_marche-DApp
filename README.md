@@ -76,8 +76,10 @@ Le défi de cette semaine consiste à créer **une place de marché décentralis
 
 ### Projet
 
-Nom| Lien Github | 
+| Nom| Lien Github | 
 ------------ | ------------- | -------------
 Hany S| [https://github.com/hany-s](https://github.com/hany-s) | 
 Vivien Richaud | [https://github.com/Louvivien/](https://github.com/Louvivien/) | 
+
+
 
