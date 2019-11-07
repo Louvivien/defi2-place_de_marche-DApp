@@ -81,5 +81,8 @@ Le défi de cette semaine consiste à créer **une place de marché décentralis
 Hany S| [https://github.com/hany-s](https://github.com/hany-s) | 
 Vivien Richaud | [https://github.com/Louvivien/](https://github.com/Louvivien/) | 
 
+| Tables | Are | Cool | |----------|:-------------:|------:| | col 1 is| left-aligned | $1600 |
+
+| Tables | Cool | |----------|------:| | col 1 is | $1600 |
 
 
