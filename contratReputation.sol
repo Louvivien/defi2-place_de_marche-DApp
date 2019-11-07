@@ -5,7 +5,7 @@ contract Reputation {
     address private _admin;
     //Variable qui stocke les participants inscrits par leur pseudo ou nom
     mapping (string => uint) public _reputMember;
-    //Variabe qui stocke l'adresse des participants
+    //Variable qui stocke l'adresse des participants
     mapping (address => string) public _addressMember;
     
     
@@ -30,7 +30,7 @@ contract Reputation {
         _addressMember[msg.sender] = pseudo;
     }
     
-    //Function qui bannis un participant (sa réputaion est modifiée à zéro)
+    //Function qui bannis un participant (sa réputation est modifiée à zéro)
     function bannir(string memory pseudo) private {
         //Vérifie que l'initiateur de cette opération est bien l'administrateur
         require(msg.sender == _admin, "Vous n'avez pas les droits nécessaires pour effectuer cette opération");
@@ -38,5 +38,12 @@ contract Reputation {
         //modification de la réputation
         _reputMember[pseudo] = 0;
     }
+
+
+    //Function qui retourne si une adresse est membre ou non
+    /*function isMember(address _address) public view returns(bool isIndeed) {
+        //return (_addressMember[_address] != 0);
+        
+        }*/
     
 }
