@@ -1,4 +1,5 @@
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 contract Reputation {
 
@@ -70,13 +71,21 @@ contract Reputation {
         //Etat de la demande
         _choix choix;
         //réputation minimum
-        uint reputMinim;
-        //liste des candidats postulant
-        mapping(address => string) candidats;
+        uint256 reputMinim;
+        //Adresse du candidat retenu
+        address candidatRetenu;
+        //Lien vers le travail de l'illustrateur
+        string url;
+        //Commentaire de l'illustrateur
+        string commentaireCandidat;
+        //Commentaire de l'entreprise
+        string commentaireEntreprise;
     }
 
     //On créé la variable des demandes de type struct Demandes
     Demandes[] _listDemandes;
+    //Variable qui va lister les candidats postulant par index de demandes
+    mapping(address => uint) candidats;
 
     //Fonction qui permet à une entreprise d'ajouter une demande
     function ajouterDemande(uint remuneration, uint delai, string memory description, uint reputMinim) public payable {
@@ -87,19 +96,80 @@ contract Reputation {
         //On vérifie que le montant payé par l'entreprise émettrice est bien égal à la rémunération + 2%
         require(msg.value >= (remuneration * 102)/100, "Merci de déposer le montant de la rémunération + 2%");
 
-        //On alimente le tableau _listDemandes
-        _listDemandes.push(Demandes(msg.sender, remuneration, delai, description, _choix.ouverte, reputMinim));
+        //On alimente le tableau _listDemandes (auncun candidat n'est retenu à ce niveau on alimente donc par défaut la variable candidat par le msg.sender)
+        _listDemandes.push(Demandes(msg.sender, remuneration, delai, description, _choix.ouverte, reputMinim, msg.sender, "", "", ""));
     }
 
-    //Fonction qui renvoie la liste des offres formulées par les entreprises
-    function listOffres() public view returns (string memory) {
+    //Fonction qui renvoie la liste des offres formulées par les entreprises 
+    function listOffres() view public returns (Demandes[] memory) {
         //On vérifie que le demandeur est bien inscris sur la plateforme
         require(estInscris(msg.sender), "Vous devez être inscris pour pouvoir consulter les offres");
 
-        //retourne tous les éléments de la variable tableau _listDemandes: me renvoie une erreur dans Remix la syntaxe n'est pas bonne
-        //le .join ne semble pas fonctionné dans solidity
-        return _listDemandes.join;
-    }
-    
+        //retourne tous les éléments de la variable tableau _listDemandes (Yosra m'a donné la réponse)
+        return _listDemandes;
+       }
+
                                 //Fin de la partie 2//
-}
+
+                                //Partie 3: Mécanisme de contractualisation//
+    
+    //Fonction qui permet à un candidat de postuler
+    function postuler(uint index) public {
+        //On vérifie que le demandeur est bien inscris sur la plateforme
+        require(estInscris(msg.sender), "Vous devez être inscris pour pouvoir postuler");
+
+        // On vérifie que l'indice indiqué est correcte 
+        require(index < _listDemandes.length && index >= 0, "Vérifiez l'indice indiqué !");
+
+        //On vérifie que la réputation du candidat est au moins égale à celle requise par l'entreprise
+        require(_reputMember[_addressMember[msg.sender]] >= _listDemandes[index].reputMinim, "Vous n'avez pas la réputation nécessaire pour postuler.");
+
+        //On ajoute le candidat à la liste des postulants pour cette demande
+        candidats[msg.sender] = index;
+    }
+
+    //Function qui permet à l'entreprise d'accepter une offre
+    function accepterOffre(uint index, address candidat) public {
+
+        //On vérifie que l'entreprise est bien l'initiatrice de la demande
+        require(_listDemandes[index].emetteur == msg.sender, "Vous n'êtes pas l'initiateur de cette demande.");
+
+        //On vérifie que le candidat indiqué a bien postulé à cette demande
+        require(candidats[candidat] == index, "ce candidat n'a pas postulé à votre demande.");
+
+        _listDemandes[index].candidatRetenu = candidat;
+        _listDemandes[index].choix = _choix.encours;
+    }
+
+    //Livraison du travail du candidat et rémunération
+    function livraison(uint index, string memory lien) public {
+        // On vérifie que l'appelant à cette fonction à bien été choisis par l'entreprise pour la demande indiquée
+        require(_listDemandes[index].candidatRetenu == msg.sender, "Vous n'avez pas été choisi pour cette demande.");
+
+        //Le lien est mis à disposition de l'entreprise, le statut devient fermée et l'illustrateur gagne un point de réputation
+        _listDemandes[index].url = lien;
+        _listDemandes[index].choix = _choix.fermee;
+        _reputMember[_addressMember[msg.sender]]++;
+
+        //Appel de la fonction de rémunération
+        remunere(msg.sender, _listDemandes[index].remuneration);
+    }       
+
+    //Fonction qui va rmunérer un illustrateur
+    function remunere(address payable illustrateur, uint montant) private {
+            illustrateur.transfer(montant);
+    }
+
+    //Fonction qui permet à une entreprise de sanctionner un candidat pour son retard
+    function retard(uint index, address candidat) public {
+        //On vérifie que l'entreprise est bien l'initiatrice de la demande
+        require(_listDemandes[index].emetteur == msg.sender, "Vous n'êtes pas l'initiateur de cette demande.");
+
+        //On vérifie que le candidat indiqué a bien été choisis pour cette demande et qu'aucun lien n'a été livré
+        require(_listDemandes[index].candidatRetenu == candidat && _listDemandes[index].choix == _choix.encours, "Le candidat indiqué n'a pas été retenue pour cette demande, ou a déjà livré.");
+
+        //L'entreprise retire un point de réputation et un commentaire est spécifié
+        _reputMember[_addressMember[candidat]]--;
+    }
+
+    }
