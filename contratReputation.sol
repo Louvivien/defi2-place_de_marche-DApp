@@ -19,14 +19,23 @@ contract Reputation {
 
     //Fonction qui vérifie qu'un uilisateur est inscris sur la plateforme
     function estInscris(address user) public view returns(bool) {
-        if (_reputMember[_addressMember[user]] >= 0) {
+        if (_reputMember[_addressMember[user]] > 0) {
         return true;
         } else {
             return false;
         }
     }
-    
-    //function qui donne la réputation d'un participant
+
+    //Fonction qui verifie qu'un pseudo nest pas deja attribue
+        function pseudoDoublon(string memory pseudo) public view returns(bool) {
+            if (_reputMember[pseudo] > 0) {
+            return true;
+            } else {
+                return false;
+            }
+    } 
+
+    //Fonction qui donne la réputation d'un participant
     function reputation(string memory pseudo) public view returns (uint256) {
         return _reputMember[pseudo];
     }
@@ -34,22 +43,23 @@ contract Reputation {
     //Fonction qui permet à un utilisateur de s'inscrire sur la plateforme
     function inscription(string memory pseudo) public {
         //Vérifie d'abord que le participant n'est pas déjà inscris
-        //Faux: require(_reputMember[_addressMember[msg.sender]] >= 0, "ce participant est déjà inscris ou a été bannis");
         require(!estInscris(msg.sender), "Ce participant est déjà inscrit");
+        //Vérifie ensuite que le pseudo n'est pas deja attribue
+        require(!pseudoDoublon(pseudo), "Ce pseudo est deja utilise");
         //ajoute le participant
-        _reputMember[pseudo] = 1;
+        _reputMember[pseudo] = 2;
         
         //ajoute également son adresse
         _addressMember[msg.sender] = pseudo;
     }
     
-    //Function qui bannis un participant (sa réputation est modifiée à zéro)
+    //Function qui bannis un participant (sa réputation est modifiée à un)
     function bannir(string memory pseudo) public {
         //Vérifie que l'initiateur de cette opération est bien l'administrateur
         require(msg.sender == _admin, "Vous n'avez pas les droits nécessaires pour effectuer cette opération");
         
         //modification de la réputation
-        _reputMember[pseudo] = 0;
+        _reputMember[pseudo] = 1;
     }
 
                         //Fin de la partie 1//
