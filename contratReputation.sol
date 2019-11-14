@@ -19,14 +19,23 @@ contract Reputation {
 
     //Fonction qui vérifie qu'un uilisateur est inscris sur la plateforme
     function estInscris(address user) public view returns(bool) {
-        if (_reputMember[_addressMember[user]] >= 0) {
+        if (_reputMember[_addressMember[user]] > 0) {
         return true;
         } else {
             return false;
         }
     }
-    
-    //function qui donne la réputation d'un participant
+
+    //Fonction qui verifie qu'un pseudo nest pas deja attribue
+        function pseudoDoublon(string memory pseudo) public view returns(bool) {
+            if (_reputMember[pseudo] > 0) {
+            return true;
+            } else {
+                return false;
+            }
+    } 
+
+    //Fonction qui donne la réputation d'un participant
     function reputation(string memory pseudo) public view returns (uint256) {
         return _reputMember[pseudo];
     }
@@ -34,22 +43,23 @@ contract Reputation {
     //Fonction qui permet à un utilisateur de s'inscrire sur la plateforme
     function inscription(string memory pseudo) public {
         //Vérifie d'abord que le participant n'est pas déjà inscris
-        //Faux: require(_reputMember[_addressMember[msg.sender]] >= 0, "ce participant est déjà inscris ou a été bannis");
         require(!estInscris(msg.sender), "Ce participant est déjà inscrit");
+        //Vérifie ensuite que le pseudo n'est pas deja attribue
+        require(!pseudoDoublon(pseudo), "Ce pseudo est deja utilise");
         //ajoute le participant
-        _reputMember[pseudo] = 1;
+        _reputMember[pseudo] = 2;
         
         //ajoute également son adresse
         _addressMember[msg.sender] = pseudo;
     }
     
-    //Function qui bannis un participant (sa réputation est modifiée à zéro)
+    //Function qui bannis un participant (sa réputation est modifiée à un)
     function bannir(string memory pseudo) public {
         //Vérifie que l'initiateur de cette opération est bien l'administrateur
         require(msg.sender == _admin, "Vous n'avez pas les droits nécessaires pour effectuer cette opération");
         
         //modification de la réputation
-        _reputMember[pseudo] = 0;
+        _reputMember[pseudo] = 1;
     }
 
                         //Fin de la partie 1//
@@ -97,7 +107,7 @@ contract Reputation {
         require(msg.value >= (remuneration * 102)/100, "Merci de déposer le montant de la rémunération + 2%");
 
         //On alimente le tableau _listDemandes (auncun candidat n'est retenu à ce niveau on alimente donc par défaut la variable candidat par le msg.sender)
-        _listDemandes.push(Demandes(msg.sender, remuneration, delai, description, _choix.ouverte, reputMinim, msg.sender, "", "", ""));
+        _listDemandes.push(Demandes(msg.sender, remuneration, 0, description, _choix.ouverte, reputMinim, msg.sender, "", "", ""));
     }
 
     //Fonction qui renvoie la liste des offres formulées par les entreprises 
@@ -128,7 +138,7 @@ contract Reputation {
         candidats[msg.sender] = index;
     }
 
-    //Function qui permet à l'entreprise d'accepter une offre
+     //Function qui permet à l'entreprise d'accepter une offre
     function accepterOffre(uint index, address candidat) public {
 
         //On vérifie que l'entreprise est bien l'initiatrice de la demande
@@ -139,6 +149,7 @@ contract Reputation {
 
         _listDemandes[index].candidatRetenu = candidat;
         _listDemandes[index].choix = _choix.encours;
+        _listDemandes[index].delai = now;
     }
 
     //Livraison du travail du candidat et rémunération
@@ -146,10 +157,16 @@ contract Reputation {
         // On vérifie que l'appelant à cette fonction à bien été choisis par l'entreprise pour la demande indiquée
         require(_listDemandes[index].candidatRetenu == msg.sender, "Vous n'avez pas été choisi pour cette demande.");
 
+        //On vérifie que le délai de livraison n'est pas dépassé, on l'initie à 2 semaines
+        require(now <= _listDemandes[index].delai + 2 weeks, "Vous avez dépassé la délai de livraison, l'entreprise peut vous sanxtionner.");
+
         //Le lien est mis à disposition de l'entreprise, le statut devient fermée et l'illustrateur gagne un point de réputation
         _listDemandes[index].url = lien;
         _listDemandes[index].choix = _choix.fermee;
         _reputMember[_addressMember[msg.sender]]++;
+
+        //Le délai est remis à jour pour permettre aux deux parties de laisser un commentaire durant une durée limitée à une semaine
+         _listDemandes[index].delai = now + 1 weeks;
 
         //Appel de la fonction de rémunération
         remunere(msg.sender, _listDemandes[index].remuneration);
@@ -168,8 +185,27 @@ contract Reputation {
         //On vérifie que le candidat indiqué a bien été choisis pour cette demande et qu'aucun lien n'a été livré
         require(_listDemandes[index].candidatRetenu == candidat && _listDemandes[index].choix == _choix.encours, "Le candidat indiqué n'a pas été retenue pour cette demande, ou a déjà livré.");
 
+        //On vérifie que le délai de livraison a bien été dépassé
+        require( _listDemandes[index].delai > now, "Le délai de livraison n'a pas encore été dépassé.");
+
         //L'entreprise retire un point de réputation et un commentaire est spécifié
         _reputMember[_addressMember[candidat]]--;
+    }
+
+    //Fonction qui permet de laisser un commentaire
+    function commentaire(uint index, string memory commentaire) public {
+        // On vérifie que l'indice indiqué est correcte 
+        require(index < _listDemandes.length && index >= 0, "Vérifiez l'indice indiqué !");
+
+        //On vérifie que le délai n'est pas dépassé
+        require(_listDemandes[index].delai <= now, "Le délai pour laisser un commentaire est dépassé.");
+
+        //On vérifie que le msg.sender est soit l'entreprise soit le candidat pour affecter le commentaire approprié
+        if (msg.sender == _listDemandes[index].emetteur) {
+            _listDemandes[index].commentaireEntreprise = commentaire;
+        } else if (msg.sender == _listDemandes[index].candidatRetenu) {
+            _listDemandes[index].commentaireCandidat = commentaire;
+        }
     }
 
     }
