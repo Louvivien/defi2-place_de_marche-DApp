@@ -94,8 +94,27 @@ contract Reputation {
 
     //On créé la variable des demandes de type struct Demandes
     Demandes[] _listDemandes;
-    //Variable qui va lister les candidats postulant par index de demandes
-    mapping(address => uint) candidats;
+    //On créé un type structure qui va lister les candidats ayant postulés
+    struct Postulant {
+        address adresseCandidat;
+        uint indexDemande;
+    }
+
+    //variable tableau de type Postulant qui va lister les postulants
+    Postulant[] _postulant;
+
+    //Fonction qui permet de vérifier qu'un candidat a postulé pour une demande
+    function aPostule(uint index, address candidat) public view returns (bool) {
+        //On vérifie que l'initiateur est inscris sur la platforme
+        require(estInscris(msg.sender), "Vous devez d'abords vous inscrire");
+
+        //On boucle sur le tableau _postulant
+        for (uint i = 0; i < _postulant.length; i++) {
+            if (_postulant[i].indexDemande == index && _postulant[i].adresseCandidat == candidat) {
+                return true;
+            }
+        } return false;
+    }
 
     //Fonction qui permet à une entreprise d'ajouter une demande
     function ajouterDemande(uint remuneration, uint delai, string memory description, uint reputMinim) public payable {
@@ -135,7 +154,7 @@ contract Reputation {
         require(_reputMember[_addressMember[msg.sender]] >= _listDemandes[index].reputMinim, "Vous n'avez pas la réputation nécessaire pour postuler.");
 
         //On ajoute le candidat à la liste des postulants pour cette demande
-        candidats[msg.sender] = index;
+        _postulant.push(Postulant(msg.sender, index));
     }
 
      //Function qui permet à l'entreprise d'accepter une offre
@@ -145,7 +164,7 @@ contract Reputation {
         require(_listDemandes[index].emetteur == msg.sender, "Vous n'êtes pas l'initiateur de cette demande.");
 
         //On vérifie que le candidat indiqué a bien postulé à cette demande
-        require(candidats[candidat] == index, "ce candidat n'a pas postulé à votre demande.");
+        require(aPostule(index, candidat), "ce candidat n'a pas postulé à votre demande.");
 
         _listDemandes[index].candidatRetenu = candidat;
         _listDemandes[index].choix = _choix.encours;
