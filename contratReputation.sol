@@ -240,4 +240,6 @@ contract Reputation {
         }
     }
 
+                                            //Fin de la partie 3//
+
     }
