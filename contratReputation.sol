@@ -37,6 +37,9 @@ contract Reputation {
 
     //Fonction qui donne la réputation d'un participant
     function reputation(string memory pseudo) public view returns (uint256) {
+        //Vérifie d'abord que le participant existe
+        require(_reputMember[pseudo] > 0, "Ce participant est inconnu");
+        
         return _reputMember[pseudo];
     }
     
@@ -53,7 +56,7 @@ contract Reputation {
         _addressMember[msg.sender] = pseudo;
     }
     
-    //Function qui bannis un participant (sa réputation est modifiée à un)
+    //Fonction qui bannis un participant (sa réputation est modifiée à un)
     function bannir(string memory pseudo) public {
         //Vérifie que l'initiateur de cette opération est bien l'administrateur
         require(msg.sender == _admin, "Vous n'avez pas les droits nécessaires pour effectuer cette opération");
@@ -65,8 +68,8 @@ contract Reputation {
                         //Fin de la partie 1//
 
                         //partie 2: Liste des demandes//
-        //Variable Choix de type enum
-        enum _choix{ouverte, encours, fermee}
+        //Variable etat de type enum
+        enum _etat{ouverte, encours, fermee}
 
         //On créé la structure de demande qui permet à une entreprise de formuler une demande
     struct Demandes {
@@ -74,12 +77,14 @@ contract Reputation {
         address emetteur;
         //rémunération
         uint remuneration;
-        //Délai d'acceptation
+        //Délai d'acceptation en seconde
         uint delai;
+        //Ddebut de la tache
+        uint tDebut;
         //Description de la tâche recherchée
         string description;
         //Etat de la demande
-        _choix choix;
+        _etat etat;
         //réputation minimum
         uint256 reputMinim;
         //Adresse du candidat retenu
@@ -121,12 +126,18 @@ contract Reputation {
         //On vérifie d'abord que l'entreprise est bien inscris sur la plateforme
         require(estInscris(msg.sender), "Vous devez d'abords vous inscrire");
         //On vérifie que la rémunération proposée est différente de 0
-        require(remuneration > 0, "Merci de précisier la rémunération");
+        require(remuneration > 0, "Merci de préciser la rémunération");
+        //On vérifie que le delai proposée est différente de 0
+        require(delai > 0, "Merci de préciser un delai pour realiser le travail (en jours)");
         //On vérifie que le montant payé par l'entreprise émettrice est bien égal à la rémunération + 2%
         require(msg.value >= (remuneration * 102)/100, "Merci de déposer le montant de la rémunération + 2%");
 
-        //On alimente le tableau _listDemandes (auncun candidat n'est retenu à ce niveau on alimente donc par défaut la variable candidat par le msg.sender)
-        _listDemandes.push(Demandes(msg.sender, remuneration, 0, description, _choix.ouverte, reputMinim, msg.sender, "", "", ""));
+        //A MODIFIER une fois les tests faits :
+        //changer l'input pour un delai en jours plutot qu'en secondes
+        //uint delai = delaienjours*86400
+
+        //On alimente le tableau _listDemandes (auncun candidat n'est retenu à ce niveau on alimente donc par défaut la variable candidat, idem pour temps de debut qu'on met par defaut a zero)
+        _listDemandes.push(Demandes(msg.sender, remuneration, delai, 0, description, _etat.ouverte, reputMinim, "", "", "", ""));
     }
 
     //Fonction qui renvoie la liste des offres formulées par les entreprises 
@@ -167,8 +178,8 @@ contract Reputation {
         require(aPostule(index, candidat), "ce candidat n'a pas postulé à votre demande.");
 
         _listDemandes[index].candidatRetenu = candidat;
-        _listDemandes[index].choix = _choix.encours;
-        _listDemandes[index].delai = now;
+        _listDemandes[index].etat = _etat.encours;
+        _listDemandes[index].tDebut = now;
     }
 
     //Livraison du travail du candidat et rémunération
@@ -176,12 +187,17 @@ contract Reputation {
         // On vérifie que l'appelant à cette fonction à bien été choisis par l'entreprise pour la demande indiquée
         require(_listDemandes[index].candidatRetenu == msg.sender, "Vous n'avez pas été choisi pour cette demande.");
 
+        // On vérifie le statut de la demande
+        require(_listDemandes[index].etat == _etat.encours, "Vous n'avez pas été choisi pour cette demande.");
+
+
         //On vérifie que le délai de livraison n'est pas dépassé, on l'initie à 2 semaines
-        require(now <= _listDemandes[index].delai + 2 weeks, "Vous avez dépassé la délai de livraison, l'entreprise peut vous sanxtionner.");
+        require(now <= _listDemandes[index].tDebut + _listDemandes[index].delai, "Vous avez dépassé le délai de livraison, l'entreprise peut vous sanctionner.");
 
         //Le lien est mis à disposition de l'entreprise, le statut devient fermée et l'illustrateur gagne un point de réputation
         _listDemandes[index].url = lien;
-        _listDemandes[index].choix = _choix.fermee;
+        //A MODIFIER : il faut hacher ce lien
+        _listDemandes[index].etat = _etat.fermee;
         _reputMember[_addressMember[msg.sender]]++;
 
         //Le délai est remis à jour pour permettre aux deux parties de laisser un commentaire durant une durée limitée à une semaine
@@ -196,16 +212,13 @@ contract Reputation {
             illustrateur.transfer(montant);
     }
 
-    //Fonction qui permet à une entreprise de sanctionner un candidat pour son retard
-    function retard(uint index, address candidat) public {
+    //Fonction qui permet à une entreprise de sanctionner celui qui realise la tache pour son retard
+    function retard(uint index) public {
         //On vérifie que l'entreprise est bien l'initiatrice de la demande
         require(_listDemandes[index].emetteur == msg.sender, "Vous n'êtes pas l'initiateur de cette demande.");
 
-        //On vérifie que le candidat indiqué a bien été choisis pour cette demande et qu'aucun lien n'a été livré
-        require(_listDemandes[index].candidatRetenu == candidat && _listDemandes[index].choix == _choix.encours, "Le candidat indiqué n'a pas été retenue pour cette demande, ou a déjà livré.");
-
         //On vérifie que le délai de livraison a bien été dépassé
-        require( _listDemandes[index].delai > now, "Le délai de livraison n'a pas encore été dépassé.");
+        require(_listDemandes[index].tDebut + _listDemandes[index].delai > now, "Le délai de livraison n'a pas encore été dépassé.");
 
         //L'entreprise retire un point de réputation et un commentaire est spécifié
         _reputMember[_addressMember[candidat]]--;
