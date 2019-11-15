@@ -1,0 +1,352 @@
+{
+    "contractName": "contratReputation",
+    "abi":[
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "candidat",
+				"type": "address"
+			}
+		],
+		"name": "accepterOffre",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "remuneration",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "delai",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "reputMinim",
+				"type": "uint256"
+			}
+		],
+		"name": "ajouterDemande",
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "pseudo",
+				"type": "string"
+			}
+		],
+		"name": "bannir",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "commentaire",
+				"type": "string"
+			}
+		],
+		"name": "commentaire",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "pseudo",
+				"type": "string"
+			}
+		],
+		"name": "inscription",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "lien",
+				"type": "string"
+			}
+		],
+		"name": "livraison",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "postuler",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "candidat",
+				"type": "address"
+			}
+		],
+		"name": "retard",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "_addressMember",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"name": "_reputMember",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "estInscris",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "listOffres",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "emetteur",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "remuneration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "delai",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Reputation._choix",
+						"name": "choix",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "reputMinim",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "candidatRetenu",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "url",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "commentaireCandidat",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "commentaireEntreprise",
+						"type": "string"
+					}
+				],
+				"internalType": "struct Reputation.Demandes[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "pseudo",
+				"type": "string"
+			}
+		],
+		"name": "pseudoDoublon",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "pseudo",
+				"type": "string"
+			}
+		],
+		"name": "reputation",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+], 
+"networks": {
+    "3": {
+      "events": {},
+      "links": {},
+      "address": "0x659432ab0e6324Df1dE5e1f5D2D664CECA6cEb69",
+      "transactionHash": "0x0ef3b038ea070f49f8a51da2fdd7bc3d7303f0f72c23ef5b3779c4339f8a20f8"
+    },
+    "5777": {
+      "events": {},
+      "links": {},
+      "address": "0xDAfF4B6B300BA26a2D59a3556Ac4A32219E164E7",
+      "transactionHash": ""
+    }
+  }
+}
