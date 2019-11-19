@@ -101,7 +101,8 @@ class App extends React.Component {
     async ajouterDemande(remuneration, delai, description, reputMini) {
       const {web3, contratReputation, account}= this.state
       const contract = new web3.eth.Contract(jsonContrat.abi, contratReputation)
-      await contract.methods.ajouterDemande(remuneration, delai, description, reputMini ).send({from: account})
+      let amount = 10 * 1.2;
+      await contract.methods.ajouterDemande(remuneration, delai, description, reputMini ).send({from: account, value: web3.utils.toWei(amount.toString(),'ether')})
       this.setState ({
         demande: "la demande " + description + " a été ajoutée."
       })
@@ -209,7 +210,7 @@ class App extends React.Component {
     <input class="form-control" onChange={adresse => this.setState({pseudo3: adresse.target.value})}></input>
     </div>
     <div class= "form-group">
-       <button onClick={() => this.bannir(pseudo3)} class="btn btn-primary">Réputation</button>
+       <button onClick={() => this.bannir(pseudo3)} class="btn btn-primary">Bannir</button>
        </div>
        <div class= "form-group">
     <label>{bannis}</label>
