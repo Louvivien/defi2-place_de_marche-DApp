@@ -108,9 +108,23 @@ class App extends React.Component {
       })
     }
 
+    async listOffres() {
+      const {web3, contratReputation}= this.state
+      const contract = new web3.eth.Contract(jsonContrat.abi, contratReputation)
+      let numberOfOffers = await contract.methods.getOffersCount().call()
+      let offer0 = await contract.methods.getOffer(0).call()
+      try {
+        this.setState ({
+          offres:  "il y a " + numberOfOffers + " offres. Voici la premiere :"+ offer0.description
+        }) 
+      } catch(e) {
+        alert(e)
+      }
+
+    }
     render() {
       const { contratReputation, networkId, account, pseudo,  user, verif, pseudo2, reputation, bannis, pseudo3,
-      descriptionDemande, remunDemande, delaiDemande, reputMiniDemande, demande } = this.state
+      descriptionDemande, remunDemande, delaiDemande, reputMiniDemande, demande, offres } = this.state
       return (
       <div class="container-fluid">
       <nav class="navbar navbar-light bg-primary">
@@ -245,8 +259,48 @@ class App extends React.Component {
     </div>
     </div>
 
+
+
+
+
+
+    
+
+
+
+
+
+
+
     </div>
 
+
+    <br/>
+
+    <div class="row"> 
+
+  
+    <div class="col-lg bg-light rounded-lg">
+    <div class="form-group border-bottom border-primary">
+    <label class="font-weight-bold text-center">Liste des offres:</label>
+    </div>
+    <div class= "text-center">
+    <label>Voici la liste des offres:</label>
+    
+    </div>
+    <div class= "text-center">
+       <button onClick={() => this.listOffres()} class="btn btn-primary">Liste des offres</button>
+       </div>
+       <div class= "form-group">
+    <label>{offres}</label>
+    </div>
+    </div>
+   
+      
+    </div>
+
+
+      
       </div>
       );
       }
